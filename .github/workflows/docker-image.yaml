@@ -43,8 +43,7 @@ jobs:
         uses: docker/build-push-action@v5
         if: startsWith(github.ref, 'refs/tags/v')
         with:
-          context: .
-          platforms: linux/amd64,linux/arm64
+          context: ./
           push: true
           tags: ${{ env.REGISTRY }}:${{ github.ref_name }}
       - name: Create a release
