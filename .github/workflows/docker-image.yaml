@@ -24,9 +24,7 @@ jobs:
     needs: [build]
     env:
       REGISTRY: ghcr.io/rattrapage-hackathon-m1/authentification
-    permissions:
-      contents: read
-      packages: write
+    permissions: write-all
     steps:
       - uses: actions/checkout@v3
       - name: Set up QEMU
