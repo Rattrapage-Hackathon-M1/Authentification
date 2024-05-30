@@ -1,9 +1,7 @@
-package fr.esgi.Authentification.service.impl;
+package fr.esgi.Authentification.security.service.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.esgi.Authentification.business.Utilisateur;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

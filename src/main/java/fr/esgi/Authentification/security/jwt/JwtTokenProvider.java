@@ -8,7 +8,7 @@ import java.util.Set;
 import fr.esgi.Authentification.business.Utilisateur;
 import fr.esgi.Authentification.model.Role;
 import fr.esgi.Authentification.repository.UtilisateurRepository;
-import fr.esgi.Authentification.service.impl.UtilisateurDetailsImpl;
+import fr.esgi.Authentification.security.service.impl.UtilisateurDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

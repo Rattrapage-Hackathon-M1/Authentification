@@ -1,4 +1,4 @@
-package fr.esgi.Authentification.service.impl;
+package fr.esgi.Authentification.security.service.impl;
 
 import fr.esgi.Authentification.business.Utilisateur;
 import fr.esgi.Authentification.repository.UtilisateurRepository;

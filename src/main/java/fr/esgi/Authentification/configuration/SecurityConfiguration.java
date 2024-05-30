@@ -2,7 +2,7 @@ package fr.esgi.Authentification.configuration;
 
 import fr.esgi.Authentification.security.jwt.AuthEntryPointJwt;
 import fr.esgi.Authentification.security.jwt.AuthTokenFilter;
-import fr.esgi.Authentification.service.impl.UtilisateurDetailsServiceImpl;
+import fr.esgi.Authentification.security.service.impl.UtilisateurDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,7 +56,7 @@ public class SecurityConfiguration {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/signup", "/api/auth/login").permitAll()
+                        auth.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .anyRequest().authenticated()
                 );

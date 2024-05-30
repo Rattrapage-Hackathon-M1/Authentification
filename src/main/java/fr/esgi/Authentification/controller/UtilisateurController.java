@@ -1,22 +1,30 @@
 package fr.esgi.Authentification.controller;
 
 import fr.esgi.Authentification.business.Utilisateur;
+import fr.esgi.Authentification.exception.TokenRefreshException;
 import fr.esgi.Authentification.model.ERole;
 import fr.esgi.Authentification.model.RefreshToken;
 import fr.esgi.Authentification.model.Role;
+import fr.esgi.Authentification.payload.request.ChangePasswordRequest;
 import fr.esgi.Authentification.payload.request.LoginRequest;
 import fr.esgi.Authentification.payload.request.SignUpRequest;
+import fr.esgi.Authentification.payload.request.TokenRefreshRequest;
 import fr.esgi.Authentification.payload.response.JwtResponse;
+import fr.esgi.Authentification.payload.response.MessageResponse;
+import fr.esgi.Authentification.payload.response.TokenRefreshResponse;
 import fr.esgi.Authentification.repository.RoleRepository;
 import fr.esgi.Authentification.repository.UtilisateurRepository;
 import fr.esgi.Authentification.security.jwt.JwtTokenProvider;
-import fr.esgi.Authentification.service.RefreshTokenService;
-import fr.esgi.Authentification.service.impl.UtilisateurDetailsImpl;
+import fr.esgi.Authentification.security.service.RefreshTokenService;
+import fr.esgi.Authentification.security.service.TokenBlacklist;
+import fr.esgi.Authentification.security.service.impl.UtilisateurDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,12 +53,18 @@ public class UtilisateurController {
     private UtilisateurRepository utilisateurRepository;
     @Autowired
     private RefreshTokenService refreshTokenService;
+    @Autowired
+    private TokenBlacklist tokenBlacklist;
 
     @PostMapping("/signup")
     public ResponseEntity<?> inscriptionUtilisateur(@Valid @RequestBody SignUpRequest signUpRequest) {
         if (utilisateurRepository.findByAdresseEmail(signUpRequest.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("L'utilisateur existe déjà");
         }
+        if (utilisateurRepository.existsByNom(signUpRequest.getNom())) {
+            return ResponseEntity.badRequest().body("Erreur : le nom est déjà pris");
+        }
+
         Utilisateur utilisateur = new Utilisateur(
                 signUpRequest.getNom(),
                 signUpRequest.getPrenom(),
@@ -82,7 +96,7 @@ public class UtilisateurController {
 
         utilisateur.setRoles(roles);
         utilisateurRepository.save(utilisateur);
-        return ResponseEntity.ok(utilisateur);
+        return ResponseEntity.ok(new MessageResponse("Utilisateur enregistré avec succès !"));
     }
 
     @PostMapping("/login")
@@ -109,6 +123,74 @@ public class UtilisateurController {
         String token = extraireToken(request);
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Vous êtes déconnecté");
+    }
+
+    @GetMapping("/verifytoken")
+    public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String tokenHeader) {
+        boolean isValid = validateToken(tokenHeader);
+
+        if (isValid) {
+            return ResponseEntity.ok(new MessageResponse("Token is valid"));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Token is invalid or expired"));
+        }
+    }
+
+    // Extract and validate JWT token from the Authorization header
+    private boolean validateToken(String header) {
+        if (header != null && header.startsWith("Bearer ")) {
+            String jwtToken = header.substring(7); // Remove "Bearer " prefix
+            try {
+                return jwtTokenProvider.validateJwtToken(jwtToken);
+            } catch (Exception e) {
+                // Handle any exceptions if needed
+                return false;
+            }
+        }
+        return false;
+    }
+
+    @PostMapping("/refreshtoken")
+    public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifierExpiration)
+                .map(RefreshToken::getUtilisateur)
+                .map(user -> {
+                    String token = jwtTokenProvider.generateTokenFromUsername(((Utilisateur) user).getAdresseEmail());
+                    return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
+                })
+                .orElseThrow(() -> new TokenRefreshException());
+    }
+
+    @PostMapping("/changepassword")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> changePassword(
+            @Valid @RequestBody ChangePasswordRequest changePasswordRequest,
+            HttpServletRequest request) {
+        UtilisateurDetailsImpl userDetails = (UtilisateurDetailsImpl) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+        Utilisateur user = utilisateurRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Error: User not found."));
+
+        if (!encoder.matches(changePasswordRequest.getOldPassword(),
+                user.getMotDePasse())) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse(
+                            "Error: Old password is incorrect."));
+        }
+
+        user.setMotDePasse(encoder.encode(changePasswordRequest.getNewPassword()));
+        utilisateurRepository.save(user);
+
+        // Invalidate the current authentication token
+        String token = extraireToken(request);
+        tokenBlacklist.blacklistToken(token);
+
+        return ResponseEntity.ok(new MessageResponse("Password changed successfully!"));
     }
 
     private String extraireToken(HttpServletRequest request) {
