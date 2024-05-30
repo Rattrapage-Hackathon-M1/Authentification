@@ -16,16 +16,10 @@ public class VerifyController {
     }
 
     @GetMapping("/employe")
-    @PreAuthorize("hasRole('ROLE_EMPLOYE') or hasRole('ROLE_MANAGER') or hasRole" +
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole" +
             "('ROLE_ADMIN')")
     public String userAccess() {
         return "Employee Content.";
-    }
-
-    @GetMapping("/manager")
-    @PreAuthorize("hasRole('ROLE_MANAGER')")
-    public String moderatorAccess() {
-        return "Manager Board.";
     }
 
     @GetMapping("/admin")

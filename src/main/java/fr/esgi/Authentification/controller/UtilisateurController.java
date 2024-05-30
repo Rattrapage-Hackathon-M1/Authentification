@@ -77,7 +77,7 @@ public class UtilisateurController {
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
-            Role role = roleRepository.findByName(ERole.ROLE_EMPLOYE)
+            Role role = roleRepository.findByName(ERole.ROLE_USER)
                     .orElseThrow(() -> new RuntimeException("Erreur : le rôle n'est pas trouvé."));
             roles.add(role);
         } else {
@@ -88,13 +88,8 @@ public class UtilisateurController {
                                 .orElseThrow(() -> new RuntimeException("Erreur : le rôle n'est pas trouvé."));
                         roles.add(adminRole);
                         break;
-                    case "manager":
-                        Role modRole = roleRepository.findByName(ERole.ROLE_MANAGER)
-                                .orElseThrow(() -> new RuntimeException("Erreur : le rôle n'est pas trouvé."));
-                        roles.add(modRole);
-                        break;
                     default:
-                        Role userRole = roleRepository.findByName(ERole.ROLE_EMPLOYE)
+                        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("Erreur : le rôle n'est pas trouvé."));
                         roles.add(userRole);
                 }
