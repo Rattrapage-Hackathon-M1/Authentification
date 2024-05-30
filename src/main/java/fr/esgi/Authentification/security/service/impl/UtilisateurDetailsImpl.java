@@ -1,7 +1,7 @@
 package fr.esgi.Authentification.security.service.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import fr.esgi.Authentification.business.Utilisateur;
+import fr.esgi.Authentification.model.Utilisateur;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

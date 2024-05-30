@@ -1,6 +1,6 @@
 package fr.esgi.Authentification.security.service;
 
-import fr.esgi.Authentification.business.Utilisateur;
+import fr.esgi.Authentification.model.Utilisateur;
 import fr.esgi.Authentification.exception.TokenRefreshException;
 import fr.esgi.Authentification.model.RefreshToken;
 import fr.esgi.Authentification.repository.RefreshTokenRepository;

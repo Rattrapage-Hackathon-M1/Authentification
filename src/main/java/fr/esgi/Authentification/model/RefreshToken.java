@@ -1,6 +1,5 @@
 package fr.esgi.Authentification.model;
 
-import fr.esgi.Authentification.business.Utilisateur;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

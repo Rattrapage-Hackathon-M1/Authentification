@@ -1,7 +1,7 @@
 package fr.esgi.Authentification.repository;
 
 
-import fr.esgi.Authentification.business.Utilisateur;
+import fr.esgi.Authentification.model.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

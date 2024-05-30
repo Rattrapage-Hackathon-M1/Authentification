@@ -1,6 +1,6 @@
 package fr.esgi.Authentification.security.service.impl;
 
-import fr.esgi.Authentification.business.Utilisateur;
+import fr.esgi.Authentification.model.Utilisateur;
 import fr.esgi.Authentification.repository.UtilisateurRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

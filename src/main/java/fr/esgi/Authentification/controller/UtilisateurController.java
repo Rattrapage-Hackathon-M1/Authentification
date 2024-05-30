@@ -1,6 +1,6 @@
 package fr.esgi.Authentification.controller;
 
-import fr.esgi.Authentification.business.Utilisateur;
+import fr.esgi.Authentification.model.Utilisateur;
 import fr.esgi.Authentification.exception.TokenRefreshException;
 import fr.esgi.Authentification.model.ERole;
 import fr.esgi.Authentification.model.RefreshToken;
@@ -14,14 +14,12 @@ import fr.esgi.Authentification.payload.response.MessageResponse;
 import fr.esgi.Authentification.payload.response.TokenRefreshResponse;
 import fr.esgi.Authentification.repository.RoleRepository;
 import fr.esgi.Authentification.repository.UtilisateurRepository;
-import fr.esgi.Authentification.security.jwt.AuthTokenFilter;
 import fr.esgi.Authentification.security.jwt.JwtTokenProvider;
 import fr.esgi.Authentification.security.service.RefreshTokenService;
 import fr.esgi.Authentification.security.service.TokenBlacklist;
 import fr.esgi.Authentification.security.service.impl.UtilisateurDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +40,6 @@ import java.util.Set;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
-@AllArgsConstructor
 public class UtilisateurController {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -59,7 +56,7 @@ public class UtilisateurController {
     @Autowired
     private TokenBlacklist tokenBlacklist;
 
-    private final static Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+    Logger logger = LoggerFactory.getLogger(UtilisateurController.class);
 
     @PostMapping("/signup")
     public ResponseEntity<?> inscriptionUtilisateur(@Valid @RequestBody SignUpRequest signUpRequest) {
@@ -91,6 +88,11 @@ public class UtilisateurController {
                                 .orElseThrow(() -> new RuntimeException("Erreur : le rôle n'est pas trouvé."));
                         roles.add(adminRole);
                         break;
+                    case "manager":
+                        Role modRole = roleRepository.findByName(ERole.ROLE_MANAGER)
+                                .orElseThrow(() -> new RuntimeException("Erreur : le rôle n'est pas trouvé."));
+                        roles.add(modRole);
+                        break;
                     default:
                         Role userRole = roleRepository.findByName(ERole.ROLE_EMPLOYE)
                                 .orElseThrow(() -> new RuntimeException("Erreur : le rôle n'est pas trouvé."));
@@ -107,12 +109,14 @@ public class UtilisateurController {
     @PostMapping("/login")
     public ResponseEntity<?> connexionUtilisateur(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            Authentication authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),
+                            loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            String token = jwtTokenProvider.generateToken(authentication);
             UtilisateurDetailsImpl userDetails = (UtilisateurDetailsImpl) authentication.getPrincipal();
-            List<String> roles = userDetails.getAuthorities().stream()
+            String token = jwtTokenProvider.generateToken(authentication);
+            List<String> roles = userDetails.getAuthorities()
+                    .stream()
                     .map(item -> item.getAuthority())
                     .toList();
             RefreshToken refreshToken = refreshTokenService.creerRefreshToken(userDetails.getId());
@@ -208,30 +212,5 @@ public class UtilisateurController {
             return bearerToken.substring(7);
         }
         return null;
-    }
-
-    public static class JwtAuthenticationResponse {
-        private String accessToken;
-        private String tokenType = "Bearer";
-
-        public JwtAuthenticationResponse(String accessToken) {
-            this.accessToken = accessToken;
-        }
-
-        public String getAccessToken() {
-            return accessToken;
-        }
-
-        public void setAccessToken(String accessToken) {
-            this.accessToken = accessToken;
-        }
-
-        public String getTokenType() {
-            return tokenType;
-        }
-
-        public void setTokenType(String tokenType) {
-            this.tokenType = tokenType;
-        }
     }
 }

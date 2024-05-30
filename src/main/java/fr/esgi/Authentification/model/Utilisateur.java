@@ -1,6 +1,5 @@
-package fr.esgi.Authentification.business;
+package fr.esgi.Authentification.model;
 
-import fr.esgi.Authentification.model.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
