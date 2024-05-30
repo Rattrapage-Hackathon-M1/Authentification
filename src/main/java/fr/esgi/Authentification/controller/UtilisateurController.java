@@ -14,6 +14,7 @@ import fr.esgi.Authentification.payload.response.MessageResponse;
 import fr.esgi.Authentification.payload.response.TokenRefreshResponse;
 import fr.esgi.Authentification.repository.RoleRepository;
 import fr.esgi.Authentification.repository.UtilisateurRepository;
+import fr.esgi.Authentification.security.jwt.AuthTokenFilter;
 import fr.esgi.Authentification.security.jwt.JwtTokenProvider;
 import fr.esgi.Authentification.security.service.RefreshTokenService;
 import fr.esgi.Authentification.security.service.TokenBlacklist;
@@ -21,6 +22,8 @@ import fr.esgi.Authentification.security.service.impl.UtilisateurDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +58,8 @@ public class UtilisateurController {
     private RefreshTokenService refreshTokenService;
     @Autowired
     private TokenBlacklist tokenBlacklist;
+
+    private final static Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
     @PostMapping("/signup")
     public ResponseEntity<?> inscriptionUtilisateur(@Valid @RequestBody SignUpRequest signUpRequest) {
@@ -101,28 +106,26 @@ public class UtilisateurController {
 
     @PostMapping("/login")
     public ResponseEntity<?> connexionUtilisateur(@Valid @RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtTokenProvider.generateToken(authentication);
-        UtilisateurDetailsImpl userDetails = (UtilisateurDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .toList();
-        RefreshToken refreshToken = refreshTokenService.creerRefreshToken(userDetails.getId());
-        return ResponseEntity.ok(new JwtResponse(
-                token,
-                refreshToken.getToken(),
-                userDetails.getId(),
-                userDetails.getEmail(),
-                roles));
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<?> deconnexionUtilisateur(HttpServletRequest request) {
-        String token = extraireToken(request);
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok("Vous êtes déconnecté");
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = jwtTokenProvider.generateToken(authentication);
+            UtilisateurDetailsImpl userDetails = (UtilisateurDetailsImpl) authentication.getPrincipal();
+            List<String> roles = userDetails.getAuthorities().stream()
+                    .map(item -> item.getAuthority())
+                    .toList();
+            RefreshToken refreshToken = refreshTokenService.creerRefreshToken(userDetails.getId());
+            return ResponseEntity.ok(new JwtResponse(
+                    token,
+                    refreshToken.getToken(),
+                    userDetails.getId(),
+                    userDetails.getEmail(),
+                    roles));
+        } catch (Exception e) {
+            logger.error("Erreur d'authentification: " + e.getMessage());
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
     }
 
     @GetMapping("/verifytoken")
@@ -136,18 +139,24 @@ public class UtilisateurController {
         }
     }
 
-    // Extract and validate JWT token from the Authorization header
     private boolean validateToken(String header) {
         if (header != null && header.startsWith("Bearer ")) {
             String jwtToken = header.substring(7); // Remove "Bearer " prefix
             try {
                 return jwtTokenProvider.validateJwtToken(jwtToken);
             } catch (Exception e) {
-                // Handle any exceptions if needed
+                logger.error("Error validating token: " + e.getMessage());
                 return false;
             }
         }
         return false;
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> deconnexionUtilisateur(HttpServletRequest request) {
+        String token = extraireToken(request);
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Vous êtes déconnecté");
     }
 
     @PostMapping("/refreshtoken")
