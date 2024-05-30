@@ -60,16 +60,15 @@ public class UtilisateurController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> inscriptionUtilisateur(@Valid @RequestBody SignUpRequest signUpRequest) {
-        if (utilisateurRepository.findByAdresseEmail(signUpRequest.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("L'utilisateur existe déjà");
+        if (utilisateurRepository.existsByAdresseEmail(signUpRequest.getEmail())) {
+            return ResponseEntity.badRequest().body("Erreur : l'adresse email est déjà prise");
         }
-        if (utilisateurRepository.existsByNom(signUpRequest.getNom())) {
-            return ResponseEntity.badRequest().body("Erreur : le nom est déjà pris");
+        if (utilisateurRepository.existsByUsername(signUpRequest.getUsername())) {
+            return ResponseEntity.badRequest().body("Erreur : le username est déjà pris");
         }
 
         Utilisateur utilisateur = new Utilisateur(
-                signUpRequest.getNom(),
-                signUpRequest.getPrenom(),
+                signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
@@ -105,7 +104,7 @@ public class UtilisateurController {
     public ResponseEntity<?> connexionUtilisateur(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),
+                    .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
                             loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             UtilisateurDetailsImpl userDetails = (UtilisateurDetailsImpl) authentication.getPrincipal();
@@ -119,6 +118,7 @@ public class UtilisateurController {
                     token,
                     refreshToken.getToken(),
                     userDetails.getId(),
+                    userDetails.getUsername(),
                     userDetails.getEmail(),
                     roles));
         } catch (Exception e) {

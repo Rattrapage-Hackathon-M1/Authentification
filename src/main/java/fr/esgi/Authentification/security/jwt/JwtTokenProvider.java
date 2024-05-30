@@ -62,7 +62,7 @@ public class JwtTokenProvider {
     public String generateTokenFromUsername(String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION);
-        Utilisateur utilisateur = utilisateurRepository.findByAdresseEmail(username).get();
+        Utilisateur utilisateur = utilisateurRepository.findByUsername(username).get();
         Set<Role> rolesSet = utilisateur.getRoles();
         List<String> roles = rolesSet.stream()
                 .map(role -> role.getName())

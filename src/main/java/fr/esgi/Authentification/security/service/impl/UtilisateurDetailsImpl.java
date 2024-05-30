@@ -1,20 +1,22 @@
 package fr.esgi.Authentification.security.service.impl;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import fr.esgi.Authentification.model.Utilisateur;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import fr.esgi.Authentification.model.Utilisateur;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class UtilisateurDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
 
     private Long id;
+
+    private String username;
 
     private String email;
 
@@ -23,22 +25,24 @@ public class UtilisateurDetailsImpl implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UtilisateurDetailsImpl(Long id, String email, String password,
-                                  Collection<? extends GrantedAuthority> authorities) {
+    public UtilisateurDetailsImpl(Long id, String username, String email, String password,
+                           Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
+        this.username = username;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
     }
 
-    public static UtilisateurDetailsImpl build(Utilisateur utilisateur) {
-        List<GrantedAuthority> authorities = utilisateur.getRoles().stream()
+    public static UtilisateurDetailsImpl build(Utilisateur user) {
+        List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
 
-        return new UtilisateurDetailsImpl(utilisateur.getId(),
-                utilisateur.getAdresseEmail(),
-                utilisateur.getMotDePasse(),
+        return new UtilisateurDetailsImpl(user.getId(),
+                user.getUsername(),
+                user.getAdresseEmail(),
+                user.getMotDePasse(),
                 authorities);
     }
 
@@ -62,7 +66,7 @@ public class UtilisateurDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
     @Override

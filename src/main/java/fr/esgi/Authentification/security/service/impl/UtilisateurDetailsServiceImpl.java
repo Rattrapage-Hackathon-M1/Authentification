@@ -17,12 +17,12 @@ public class UtilisateurDetailsServiceImpl implements UserDetailsService {
 
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String adresseMail) throws UsernameNotFoundException {
-        if (adresseMail.trim().isEmpty()) {
-            throw new UsernameNotFoundException("L'adresse mail ne peut pas être vide");
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        if (username.trim().isEmpty()) {
+            throw new UsernameNotFoundException("Le username ne peut pas être vide");
         }
-        Utilisateur utilisateur = utilisateurRepository.findByAdresseEmail(adresseMail)
-                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur " + adresseMail + " introuvable"));
+        Utilisateur utilisateur = utilisateurRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur " + username + " introuvable"));
         return UtilisateurDetailsImpl.build(utilisateur);
     }
 }

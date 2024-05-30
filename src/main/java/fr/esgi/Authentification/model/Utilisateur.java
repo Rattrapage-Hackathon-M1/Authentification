@@ -16,7 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 @SuperBuilder
 @Table(name = "utilisateurs", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "nom"),
+        @UniqueConstraint(columnNames = "username"),
         @UniqueConstraint(columnNames = "adresseEmail")
         })
 public class Utilisateur {
@@ -27,11 +27,7 @@ public class Utilisateur {
 
     @NotBlank
     @Size(max = 50)
-    protected String nom;
-
-    @NotBlank
-    @Size(max = 50)
-    protected String prenom;
+    protected String username;
 
     @Column(unique=true)
     @NotBlank
@@ -49,9 +45,8 @@ public class Utilisateur {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public Utilisateur(String nom, String prenom, String adresseEmail, String encode) {
-        this.nom = nom;
-        this.prenom = prenom;
+    public Utilisateur(String username, String adresseEmail, String encode) {
+        this.username = username;
         this.adresseEmail = adresseEmail;
         this.motDePasse = encode;
     }
