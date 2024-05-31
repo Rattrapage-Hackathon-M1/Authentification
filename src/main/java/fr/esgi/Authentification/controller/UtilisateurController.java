@@ -82,7 +82,7 @@ public class UtilisateurController {
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
-                    case "admin":
+                    case "ROLE_ADMIN":
                         Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Erreur : le rôle n'est pas trouvé."));
                         roles.add(adminRole);

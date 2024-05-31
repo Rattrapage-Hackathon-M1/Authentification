@@ -15,11 +15,11 @@ public class VerifyController {
         return "Public Content.";
     }
 
-    @GetMapping("/employe")
+    @GetMapping("/user")
     @PreAuthorize("hasRole('ROLE_USER') or hasRole" +
             "('ROLE_ADMIN')")
     public String userAccess() {
-        return "Employee Content.";
+        return "User Content.";
     }
 
     @GetMapping("/admin")

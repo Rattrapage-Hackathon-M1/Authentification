@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -28,9 +29,9 @@ public class JwtTokenProvider {
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
     private final UtilisateurRepository utilisateurRepository;
     @Value("${esgi.app.jwtSecret}")
-    private String JWT_SECRET;
+    private String jwtSecret;
     @Value("${esgi.app.jwtExpirationMs}")
-    private int JWT_EXPIRATION;
+    private int jwtExpiration;
 
     public JwtTokenProvider(UtilisateurRepository utilisateurRepository) {
         this.utilisateurRepository = utilisateurRepository;
@@ -39,11 +40,11 @@ public class JwtTokenProvider {
     public String generateToken(Authentication authentication) {
         UtilisateurDetailsImpl utilisateur = (UtilisateurDetailsImpl) authentication.getPrincipal();
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION);
+        Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         List<String> roles = utilisateur.getAuthorities()
                 .stream()
-                .map(role -> role.getAuthority())
+                .map(GrantedAuthority::getAuthority)
                 .toList();
         return Jwts.builder()
                 .setSubject(authentication.getName())
@@ -55,19 +56,21 @@ public class JwtTokenProvider {
     }
 
     private Key key() {
-        byte[] keyBytes = Decoders.BASE64.decode(JWT_SECRET);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateTokenFromUsername(String username) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION);
-        Utilisateur utilisateur = utilisateurRepository.findByUsername(username).get();
+        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        Utilisateur utilisateur = utilisateurRepository.findByUsername(username)
+                .get();
         Set<Role> rolesSet = utilisateur.getRoles();
         List<String> roles = rolesSet.stream()
-                .map(role -> role.getName())
+                .map(Role::getName)
                 .map(ERole::name)
                 .toList();
+
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(now)

@@ -39,7 +39,8 @@ public class UtilisateurDetailsImpl implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
 
-        return new UtilisateurDetailsImpl(user.getId(),
+        return new UtilisateurDetailsImpl(
+                user.getId(),
                 user.getUsername(),
                 user.getAdresseEmail(),
                 user.getMotDePasse(),

@@ -7,6 +7,7 @@ import fr.esgi.Authentification.repository.RefreshTokenRepository;
 import fr.esgi.Authentification.repository.UtilisateurRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -15,7 +16,8 @@ import java.util.UUID;
 
 @Service
 public class RefreshTokenService {
-    private Long refreshTokenDurationMs = 864000000L;
+    @Value("${esgi.app.jwtRefreshExpirationMs}")
+    private Long refreshTokenDurationMs;
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
     @Autowired
