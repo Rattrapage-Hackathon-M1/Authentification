@@ -141,6 +141,7 @@ public class UtilisateurController {
     }
 
     private boolean validateToken(String header) {
+        logger.info("Checking token validity : " + header);
         if (header != null && header.startsWith("Bearer ")) {
             String jwtToken = header.substring(7); // Remove "Bearer " prefix
             try {
