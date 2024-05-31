@@ -128,6 +128,7 @@ public class UtilisateurController {
         }
     }
 
+    @GetMapping("/verifytoken")
     public ResponseEntity<?> verifyToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String tokenHeader) {
         logger.info("Token received: " + tokenHeader);
         boolean isValid = validateToken(tokenHeader);
