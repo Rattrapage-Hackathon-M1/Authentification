@@ -128,14 +128,15 @@ public class UtilisateurController {
         }
     }
 
-    @GetMapping("/verifytoken")
     public ResponseEntity<?> verifyToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String tokenHeader) {
         logger.info("Token received: " + tokenHeader);
         boolean isValid = validateToken(tokenHeader);
 
         if (isValid) {
+            logger.info("Token is valid.");
             return ResponseEntity.ok(new MessageResponse("Token is valid"));
         } else {
+            logger.info("Token is invalid or expired.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Token is invalid or expired"));
         }
     }
@@ -145,12 +146,16 @@ public class UtilisateurController {
         if (header != null && header.startsWith("Bearer ")) {
             String jwtToken = header.substring(7); // Remove "Bearer " prefix
             try {
-                return jwtTokenProvider.validateJwtToken(jwtToken);
+                // Assuming jwtTokenProvider is an instance of a class that validates the JWT token
+                boolean isValid = jwtTokenProvider.validateJwtToken(jwtToken);
+                logger.info("Token validation result: " + isValid);
+                return isValid;
             } catch (Exception e) {
                 logger.error("Error validating token: " + e.getMessage());
                 return false;
             }
         }
+        logger.info("Token is missing or does not start with 'Bearer '");
         return false;
     }
 
