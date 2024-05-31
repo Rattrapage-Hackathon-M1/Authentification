@@ -28,13 +28,18 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AuthTokenFilter extends OncePerRequestFilter {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
     private static final ObjectMapper mapper = new ObjectMapper();
+
     @Autowired
     private UtilisateurDetailsServiceImpl utilisateurDetailsServiceImpl;
+
     @Autowired
     private static final JwtErrorMapper mapStruct = JwtErrorMapper.INSTANCE;
+
     @Autowired
     private TokenBlacklist tokenBlacklist;
+
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
     @Override
