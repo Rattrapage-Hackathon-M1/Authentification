@@ -26,16 +26,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
-    private UtilisateurDetailsServiceImpl utilisateurDetailsServiceImpl;
+    private static final JwtErrorMapper mapStruct = JwtErrorMapper.INSTANCE;
 
     @Autowired
-    private static final JwtErrorMapper mapStruct = JwtErrorMapper.INSTANCE;
+    private JwtTokenProvider jwtUtils;
+
+    @Autowired
+    private UtilisateurDetailsServiceImpl userDetailsService;
 
     @Autowired
     private TokenBlacklist tokenBlacklist;
@@ -46,17 +47,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        logger.info("Request: " + request.getMethod() + " " + request.getRequestURI());
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            return;
-        }
-
         try {
             String jwt = parseJwt(request);
-            if (jwt != null && jwtTokenProvider.validateJwtToken(jwt)) {
-                String username = jwtTokenProvider.getUserNameFromJwtToken(jwt);
-                UserDetails userDetails = utilisateurDetailsServiceImpl.loadUserByUsername(username);
+            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                String username = jwtUtils.getUserNameFromJwtToken(jwt);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 // Validate if the token is blacklisted
                 if (!tokenBlacklist.isBlacklisted(jwt)) {
@@ -85,7 +80,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
 
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");

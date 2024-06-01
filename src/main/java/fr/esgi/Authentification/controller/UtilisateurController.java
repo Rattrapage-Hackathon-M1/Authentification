@@ -23,7 +23,6 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,24 +37,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@CrossOrigin(origins = "*", maxAge = 3600, methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}, allowCredentials = "true")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class UtilisateurController {
     @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    JwtTokenProvider jwtTokenProvider;
     @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
-    private PasswordEncoder encoder;
+    PasswordEncoder encoder;
     @Autowired
-    private RoleRepository roleRepository;
+    RoleRepository roleRepository;
     @Autowired
-    private UtilisateurRepository utilisateurRepository;
+    UtilisateurRepository utilisateurRepository;
     @Autowired
-    private RefreshTokenService refreshTokenService;
+    RefreshTokenService refreshTokenService;
     @Autowired
-    private TokenBlacklist tokenBlacklist;
+    TokenBlacklist tokenBlacklist;
 
     Logger logger = LoggerFactory.getLogger(UtilisateurController.class);
 
@@ -129,34 +128,27 @@ public class UtilisateurController {
     }
 
     @GetMapping("/verifytoken")
-    public ResponseEntity<?> verifyToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String tokenHeader) {
-        logger.info("Token received: " + tokenHeader);
+    public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String tokenHeader) {
         boolean isValid = validateToken(tokenHeader);
 
         if (isValid) {
-            logger.info("Token is valid.");
             return ResponseEntity.ok(new MessageResponse("Token is valid"));
         } else {
-            logger.info("Token is invalid or expired.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Token is invalid or expired"));
         }
     }
 
+    // Extract and validate JWT token from the Authorization header
     private boolean validateToken(String header) {
-        logger.info("Checking token validity : " + header);
         if (header != null && header.startsWith("Bearer ")) {
-            String jwtToken = header.substring(7); // Remove "Bearer " prefix
+            String jwtToken = header.substring(7);
             try {
-                // Assuming jwtTokenProvider is an instance of a class that validates the JWT token
-                boolean isValid = jwtTokenProvider.validateJwtToken(jwtToken);
-                logger.info("Token validation result: " + isValid);
-                return isValid;
+                return jwtTokenProvider.validateJwtToken(jwtToken);
             } catch (Exception e) {
-                logger.error("Error validating token: " + e.getMessage());
+                // Handle any exceptions if needed
                 return false;
             }
         }
-        logger.info("Token is missing or does not start with 'Bearer '");
         return false;
     }
 
