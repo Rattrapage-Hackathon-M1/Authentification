@@ -70,11 +70,12 @@ public class SecurityConfiguration implements org.springframework.web.servlet.co
     }
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("Authorization", "Content-Type", "Accept", "X-Requested-With")
-                .allowCredentials(true);
-    }
+public void addCorsMappings(CorsRegistry registry) {
+    registry.addMapping("/**")
+            .allowedOrigins("http://localhost:5173")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedHeaders("Authorization", "Content-Type", "Accept", "X-Requested-With")
+            .exposedHeaders("Authorization") // Add this line if 'Authorization' response header should be exposed to the frontend
+            .allowCredentials(true);
+}
 }
