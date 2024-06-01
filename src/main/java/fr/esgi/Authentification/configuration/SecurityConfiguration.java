@@ -73,6 +73,7 @@ public class SecurityConfiguration implements org.springframework.web.servlet.co
                 .allowedOrigins("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("Authorization", "Content-Type")
+                .exposedHeaders("Authorization", "Content-Type")
                 .maxAge(3600);
     }
 }
