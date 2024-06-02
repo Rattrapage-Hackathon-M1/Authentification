@@ -123,12 +123,12 @@ public class UtilisateurController {
                     roles));
         } catch (Exception e) {
             logger.error("Erreur d'authentification: " + e.getMessage());
-            return ResponseEntity.status(401).body("Unauthorized");
+            return ResponseEntity.status(401).body("Username ou mot de passe incorrect");
         }
     }
 
     @GetMapping("/verifytoken")
-    public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String tokenHeader) {
+    public ResponseEntity<?> verifyToken(@RequestHeader(required = false) String tokenHeader) {
         boolean isValid = validateToken(tokenHeader);
         if (isValid) {
             return ResponseEntity.ok(new MessageResponse("Token is valid"));
