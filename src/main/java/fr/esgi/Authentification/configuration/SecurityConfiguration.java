@@ -69,7 +69,7 @@ public class SecurityConfiguration {
                 );
 
         http.authenticationProvider(authenticationProvider());
-
+        http.addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
@@ -78,11 +78,12 @@ public class SecurityConfiguration {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
+        config.setAllowCredentials(true); // Enable if sending cookies or authorization headers
         config.addAllowedOrigin("http://localhost:5173");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
+        config.addAllowedHeader("*"); // Allow all headers (or specify specific ones)
+        config.addAllowedMethod("*"); // Allow all methods (or specify specific ones)
+        source.registerCorsConfiguration("/**", config); // Apply to all requests
         return new CorsFilter(source);
     }
+
 }
