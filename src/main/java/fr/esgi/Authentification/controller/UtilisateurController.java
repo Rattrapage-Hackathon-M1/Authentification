@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/auth")
 public class UtilisateurController {
@@ -130,7 +130,6 @@ public class UtilisateurController {
     @GetMapping("/verifytoken")
     public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String tokenHeader) {
         boolean isValid = validateToken(tokenHeader);
-
         if (isValid) {
             return ResponseEntity.ok(new MessageResponse("Token is valid"));
         } else {
@@ -145,7 +144,6 @@ public class UtilisateurController {
             try {
                 return jwtTokenProvider.validateJwtToken(jwtToken);
             } catch (Exception e) {
-                // Handle any exceptions if needed
                 return false;
             }
         }
