@@ -129,6 +129,9 @@ public class UtilisateurController {
 
     @GetMapping("/verifytoken")
     public ResponseEntity<?> verifyToken(@RequestHeader(required = false) String tokenHeader) {
+        if (tokenHeader == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Token is missing"));
+        }
         boolean isValid = validateToken(tokenHeader);
         if (isValid) {
             return ResponseEntity.ok(new MessageResponse("Token is valid"));
